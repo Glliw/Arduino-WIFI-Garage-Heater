@@ -9,6 +9,8 @@
 #define DHTPIN 8
 #define DHTTYPE DHT11
 #define Contrast 75
+unsigned long Previous_Relay_Millis = 0;  // this variable will store the last time the relay was fired
+const long Relay_Interval = 180000; // sets the delay before opening / closing the relay again to prevent nuisance signals.  180,000 = 3 minutes
 
 LiquidCrystal lcd(12, 11, 5, 4, 3, 2);
 DHT dht(DHTPIN,DHTTYPE);
@@ -63,12 +65,27 @@ void loop() {
   lcd.print("Humidity: ");
   lcd.print(int_humidity);    
   lcd.print("%");
+
+  unsigned long Current_Relay_Millis = millis();
+
+  if (Current_Relay_Millis - Previous_Relay_Millis >= Relay_Interval) {
+    Previous_Relay_Millis = Current_Relay_Millis;  // this if statement "saves" the last time the action wast taken.
+    if (tempF < 72) {
+      Serial.println("The temp is too low.  Turn on Heater.");
+      digitalWrite(ENABLE,HIGH);
+    }
+    else if (tempF > 72) {
+      Serial.println("The temp is too high.  Turn off the Heater.");
+      digitalWrite(ENABLE, LOW);
+    }
+    }
   
-  Serial.println("Fire the relay");
-  digitalWrite(ENABLE, HIGH);  // enables the relay
-  delay(5000); // wait 5 seconds
-  Serial.println("Turn off the relay");
-  digitalWrite(ENABLE, LOW); // disables the relay
-  delay(5000); // wait 5 seconds  
+ 
+//  Serial.println("Fire the relay");
+//  digitalWrite(ENABLE, HIGH);  // enables the relay
+//  delay(5000); // wait 5 seconds
+//  Serial.println("Turn off the relay");
+//  digitalWrite(ENABLE, LOW); // disables the relay
+//  delay(5000); // wait 5 seconds  
 
 }
